@@ -1,0 +1,3 @@
+<!--<directoryBrowse enabled="true" />-->
+    <directoryBrowse enabled="false" />
+    <!--this line will disable directory browsing-->
