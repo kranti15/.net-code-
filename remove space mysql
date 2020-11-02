@@ -1,0 +1,1 @@
+(select a_id from tbl_agent_master t where t.a_login_id= REPLACE(REPLACE(m.Agent_Id, '\r', ''), '\n', ''))
