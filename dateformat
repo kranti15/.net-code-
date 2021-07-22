@@ -1,0 +1,18 @@
+alter PROCEDURE OA_Recording_utility --'2021-07-22 00:00:00','2021-07-22 23:59:59' 
+	@fromdate varchar(100)=null,
+	@todate varchar(100)=null
+AS
+BEGIN
+declare @newdate varchar(50)
+declare @SelectQuery Varchar(MAX)
+
+set @newdate= (SELECT replace (CONVERT(VARCHAR(10), (CAST(@fromdate as date)), 6),' ','')  )
+	
+set @SelectQuery='select start_date,start_time,end_date,end_time,duration,filename,cti_call_number from  [172.16.0.76].[CALLMASTER].[dbo].[VLOG_CALL_MASTER_'+@newdate+']'
+
+	--PRINT @SelectQuery
+	exec (@SelectQuery)
+
+END
+GO
+
