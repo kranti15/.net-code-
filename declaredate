@@ -1,0 +1,28 @@
+Declare @SelectQuery Varchar(MAX)
+Declare @UpdateQuery Varchar(MAX)
+Declare @PreviousDate Varchar(50)
+Declare @MaseterTablePreviousDate Varchar(50)
+set @PreviousDate=(select Convert (varchar,GETDATE()-2,112))
+set @MaseterTablePreviousDate=(select REPLACE(Convert (varchar,GETDATE()-2,111),'/','_'))
+
+set @SelectQuery='select C.lead_id,C.lead_last_agent_id ,C.lead_last_agent_name,D.call_agent_name,D.call_agent_login_id,
+D.CALL_lead_id 
+from calllog C join CALLMASTER ..CTI_CALL_MASTER_'+@MaseterTablePreviousDate+'  D
+on cast(C.lead_last_dial_time as DATE)=cast(D.call_start_time as date) and C.lead_id =D.call_lead_id 
+where cast(C.lead_last_dial_time as DATE) between '''+@PreviousDate+''' and '''+@PreviousDate+''' and D.call_agent_login_id<>'''' and
+C.lead_last_agent_name='''' and D.call_service_id =4 order by C.lead_last_dial_time desc'
+
+PRINT @SelectQuery
+
+
+set @UpdateQuery='Update  C  Set C.lead_last_agent_name=D.call_agent_login_id,C.lead_last_agent_id=D.call_agent_name
+from calllog C join CALLMASTER..CTI_CALL_MASTER_'+@MaseterTablePreviousDate+' D
+on cast(C.lead_last_dial_time as DATE)=cast(D.call_start_time as date) and C.lead_id =D.call_lead_id 
+where cast(C.lead_last_dial_time as DATE) between '''+@PreviousDate+''' and '''+@PreviousDate+'''  and D.call_agent_login_id<>'''' 
+and
+C.lead_last_agent_name='''' and D.call_service_id =75'
+
+PRINT @UpdateQuery
+
+
+Exec (@UpdateQuery)
