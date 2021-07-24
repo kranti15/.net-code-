@@ -1,0 +1,51 @@
+//int i = 0;
+
+                        //for (int i = 1; i < dataGridView1.Rows.Count; i++)
+                        //{
+                        //    Filename = ((Label)dataGridView1.Rows[i].FindControl("OrgFile")).Text;
+                        //    string strpath = "";
+                        //    String New_Filename = "";
+                        //    //((TextBox)dataGridView1.Rows[i].FindControl("txtTimeline")).Text.Trim();
+                        //    string calldate = ((Label)dataGridView1.Rows[i].FindControl("VoxId")).Text;
+                        //    calldate = Convert.ToDateTime(calldate).ToString("dd_MM_yyyy");
+                        //    //New_Filename = gvr.Cells["Service_ID"].Value.ToString() + "_" + calldate + "_" + gvr.Cells["VoxId"].Value.ToString() + "_" + gvr.Cells["ContactNo"].Value.ToString() + ".vox";
+                        //    New_Filename = ((Label)dataGridView1.Rows[i].FindControl("Service_ID")).Text + "_" + calldate + "_" + ((Label)dataGridView1.Rows[i].FindControl("VoxId")).Text + "_" + ((Label)dataGridView1.Rows[i].FindControl("ContactNo")).Text + ".vox";
+
+                        //    Boolean ret = session.FileExists("/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename);
+
+                        //    if (ret == true)
+                        //    {
+                        //        TransferOperationResult transferResult;
+                        //        transferResult = session.GetFiles("/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename, FilePath + "\\" + New_Filename, false, transferOptions);
+                        //        transferResult.Check();
+
+                        //        strpath = "/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename;
+                        //    }
+                        //}
+                        
+                        foreach (GridViewRow row in dataGridView1.Rows)
+                        {
+                            String New_Filename = "";
+                            string strpath = "";
+                            Label lblFilename = row.FindControl("lblOrgFile") as Label;
+                            Filename = lblFilename.Text;
+
+                            Label lblcalldate = row.FindControl("lblCallDate") as Label;
+                            lblcalldate.Text = Convert.ToDateTime(lblcalldate.Text).ToString("dd_MM_yyyy");
+                            Label lblservice_id = row.FindControl("lblService_ID") as Label;
+                            Label lblVoxId = row.FindControl("lblVoxId") as Label;
+                            Label lblContactNo = row.FindControl("lblContactNo") as Label;
+                            New_Filename=lblservice_id.Text+"_"+lblcalldate.Text+"_"+lblVoxId.Text+"_"+lblContactNo.Text+".vox";
+                            Boolean ret = session.FileExists("/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename);
+
+                            if (ret == true)
+                            {
+                                TransferOperationResult transferResult;
+                                transferResult = session.GetFiles("/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename, FilePath + "\\" + New_Filename, false, transferOptions);
+                                transferResult.Check();
+
+                                strpath = "/opt/aspect/dcp/audio/LocStore1/EPro/Contact/1/" + Filename;
+                            }
+                            
+
+                        }
