@@ -1,0 +1,731 @@
+using System;
+using System.Data;
+using System.Configuration;
+using System.Collections;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Web.UI.HtmlControls;
+using System.Data.SqlClient;
+using System.IO;
+//using System.Net;
+using System.Text;
+using System.Xml;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
+using Newtonsoft.Json.Serialization;
+using System.Web.Script.Serialization;
+
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+using System.Net;
+using System.Security.Authentication;
+using ServiceReference1;
+using ServiceReference2;
+using System.ServiceModel;
+
+public partial class Indiafirst : System.Web.UI.Page
+{
+    Contact obj;
+    Appointment obj_appointment;
+    Opportunity obj_opportunity;
+
+    String Client_ID;
+    String Serial_ID;
+    String Contact_Id;
+    String Appointment_Id;
+    String Opportunity_Id;
+    Connection conObj = new Connection();
+    string api_leadid, Appointment_Date_Time, CampaignID, CampaignSource, City, ContactableStatus, CustomerAddress, CustomerAddress1, CustomerAddress2,
+         CustomerAddressLandmark, State,
+        Pincode, FirstCallDateTime, LastCallDateTime, LastestCallersremarks, LeadInsertDatetime, LeadID, CustomerName, MainDisposition, MeetingNotification,
+    CustomerMobileNo, Notificationtimestamp, PFACode, PolicyNo, ProductPithced, CampaignSource1, CampaignSource2, SubDisposition, VerifiedCity;
+
+    int sms_count = 0;
+    int sms_month_count = 0;
+    int sms_NC_count = 0;
+
+    //  DataTable data = new DataTable();
+
+    public string replaceSpecial(String str)
+    {
+        str = str.Replace(".", "");
+        return str;
+    }
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+        Client_ID = Request.QueryString[0];
+        Serial_ID = Request.QueryString[1];
+
+        #region *****READ DATA FROM DB AGINST LEADID
+
+
+        SqlCommand cmd = new SqlCommand();
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "USP_VYMO_REVERSE_DATA_WEB";
+        cmd.Parameters.AddWithValue("@lead_id", Client_ID);
+
+        cmd.Connection = conObj.getConn();
+        cmd.Connection.Close();
+        cmd.Connection.Open();
+        cmd.ExecuteNonQuery();
+
+        using (SqlDataReader dr = cmd.ExecuteReader())
+        {
+            if (dr.HasRows == true)
+            {
+                while (dr.Read())
+                {
+                    api_leadid = dr["api_leadid"].ToString();
+                    Appointment_Date_Time = dr["Appointment_Date_Time"].ToString();
+                    CampaignID = dr["CampaignID"].ToString();
+                    CampaignSource = dr["CampaignSource"].ToString();
+                    City = dr["City"].ToString();
+                    ContactableStatus = dr["ContactableStatus"].ToString();
+                    CustomerAddress = dr["CustomerAddress"].ToString();
+                    CustomerAddress1 = dr["CustomerAddress1"].ToString();
+                    CustomerAddress2 = dr["CustomerAddress2"].ToString();
+                    CustomerAddressLandmark = dr["CustomerAddressLandmark"].ToString();
+                    State = dr["State"].ToString();
+                    Pincode = dr["Pincode"].ToString();
+                    FirstCallDateTime = dr["FirstCallDateTime"].ToString();
+                    LastCallDateTime = dr["LastCallDateTime"].ToString();
+                    LastestCallersremarks = dr["LastestCallersremarks"].ToString();
+                    LeadInsertDatetime = dr["LeadInsertDatetime"].ToString();
+                    LeadID = dr["LeadID"].ToString();
+                    CustomerName = dr["CustomerName"].ToString();
+                    MainDisposition = dr["MainDisposition"].ToString();
+                    MeetingNotification = dr["MeetingNotification"].ToString();
+                    CustomerMobileNo = dr["CustomerMobileNo"].ToString();
+                    Notificationtimestamp = dr["Notificationtimestamp"].ToString();
+                    PFACode = dr["PFACode"].ToString();
+                    PolicyNo = dr["PolicyNo"].ToString();
+                    ProductPithced = dr["ProductPithced"].ToString();
+                    CampaignSource1 = dr["CampaignSource1"].ToString();
+                    CampaignSource2 = dr["CampaignSource2"].ToString();
+                    SubDisposition = dr["SubDisposition"].ToString();
+                    VerifiedCity = dr["VerifiedCity"].ToString();
+
+
+
+                }
+            }
+        }
+        cmd.Connection.Close();
+
+
+        #endregion
+
+
+        SEND_SMS();
+
+
+    }
+
+
+    public void SEND_SMS()
+    {
+
+
+
+
+
+        #region ********* API CALL
+
+        try
+        {
+
+Response.Redirect("Indiafirst.aspx?ClientID=212884&serialid=3");
+
+
+            //  string url = "http://uat.indiafirstlife.com/esb/SMS_Module";
+            string url = "https://staging.lms.getvymo.com/api/v1/push/vymoObjects";
+            string stringResult = "";
+            //  string MobileNo = "8655590215";
+            //  string SMSTemplate = "Dear Customer,Your INSURANCE KHATA No. is";
+            string Client = "";
+            string Auth_key = "ASKMLIVEZFJFhjIIGHAD11DDtdkl2";
+
+            //string Disposition = "Follow up";
+            //string SubDisposition = "Plan pitched";
+            //DateTime FollowUpTime = System.DateTime.Now;
+            //DateTime currentDateTime = DateTime.Now;
+            //var jsonDateTime = GetJSONFromUserDateTime(currentDateTime);
+            //DateTime CallBackTime = System.DateTime.Now.ToUniversalTime();
+            // string Comment = "TEST LEAD FROM RELIABLE IT";
+            String jsonString = @"{";
+            jsonString += @"""fields"": [ ";
+
+            jsonString += @" {""code"": ""module_code"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""module_name"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""leadname_2n2ovpurkp"",";
+            jsonString += @"""value"": """ + CustomerName + @"""},";
+
+            jsonString += @" {""code"": ""dob"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""gender"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""mobile_number"",";
+            jsonString += @"""value"": """ + CustomerMobileNo + @"""},";
+
+            jsonString += @" {""code"": ""occupation"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""statusoflastser_xaoxybuclo"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""statuscustomerl_f36tjrv6di"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""leadid_k6brbo062b"",";
+            jsonString += @"""value"": """ + LeadID + @"""},";
+
+            jsonString += @" {""code"": ""policy_no"",";
+            jsonString += @"""value"": """ + PolicyNo + @"""},";
+
+            jsonString += @" {""code"": ""payoutdate_3wdlf3gx2p"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""customerpanno_qlc8y306ds"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""educationlevel_6aq6k7st5"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""organisationlev_uf2xlzoiah"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""designationleve_ccigt19mel"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""personality1_abh4lja9lq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""interestcategor_qfe0xuyp67"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""locationlon_yqoz9ekqcg"",";
+            jsonString += @"""value"": """ + CustomerAddressLandmark + @"""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_0c1sxp7ac"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_oxoaxhqta"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""homeloanenquiry_qjzo0pzakn"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""curntzipcode_4pnmr16ad"",";
+            jsonString += @"""value"": """ + Pincode + @"""},";
+
+            jsonString += @" {""code"": ""campaignname_dhuxyuc2bs"",";
+            jsonString += @"""value"": """ + CampaignSource + @"""},";
+
+            jsonString += @" {""code"": ""orphanflag_wmlt2hqkqb"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""isndnc_1nehnk3oi"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""lsmstatus_1ypuu9bymf"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""consumptionpref_b4j9vf9pq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""opinionproduct_ndux5c4fq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""outputaltmobile_gky1bol3ge"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""outputaltemail_tn53v61pxf"",";
+            jsonString += @"""value"":""NA""},";
+
+            jsonString += @" {""code"": ""script_9nlp5r2rm"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""employmenttype_gfrwkoxuw"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""pdffilename_kksgahjym"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_u6pz1ykfu"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_ljm5onvuel"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_7gw2avmo6r"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_ov4xspdy9o"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_qiuvpoikk"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_mb6emjorke"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_9fps04jgd"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_u9b2b1m1lp"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_gi31ohwwd7"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_4gpikodmai"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_f362gnglf4"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_dinj9b3r9m"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_hs92dra1wn"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_mf2nbfo0sm"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_r5pvpicus"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_m2oiv3uegj"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_m0lsr8vepk"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_iiu1ed2mso"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_b8sek8brlq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_3km71h9aae"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_fqqow6otm7"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_bpegfuof3c"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_q9tqjguq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_0l5i7k1lu"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_beswqx1805"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_mcvz78k7o6"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_shjl1vp35s"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_h3brny7zla"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_8kaltlf0c"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_80c09qvzw"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_7a4ohf0j4"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_j5uhxg7rc6"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_tc93c921zs"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_tc93c921zs"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_1oy7aetaf"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_w3ywsh5a5g"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""loandetailnumbe_2qwvlrr6e8d"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""maturityamountf_j9wqrrgf5h"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""couponsamountfo_159nfs8lkh"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""dividendamountf_f827kll595"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""incomefordirect_xpdz4mu9kf"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""curntstate_6sn18kb1mj"",";
+            jsonString += @"""value"": """ + State + @"""},";
+
+            jsonString += @" {""code"": ""curntcity_2j2fgt4h1c"",";
+            jsonString += @"""value"": """ + City + @"""},";
+
+            jsonString += @" {""code"": ""curntaddress1_9n108hs34"",";
+            jsonString += @"""value"": """ + CustomerAddress + @"""},";
+
+            jsonString += @" {""code"": ""creatorname_4ljk210t3"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""existingagentna_7nupd55ag"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""leadgenerationc_9xee55vg1l4"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""product_name"",";
+            jsonString += @"""value"": """ + ProductPithced + @"""},";
+
+            jsonString += @" {""code"": ""productspecific_e9zy3aahg9"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""ownername_btmfrj9w9j"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""ownerage_yi1aug015"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""name"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""insuredage_wx9i4pqqa"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""nomineedetails_atusod176"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""neftflag_40bxaijga"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""nriflag_n4wvn4k6h"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""aphflag_dvwqy4qh8j"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""aploutstandinga_o3dcalbvw"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""policyissuedate_de420n2fza"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""producttype_8hkkxakgs7"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""premiumpaymentm_cmp3n0mkd5"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""totalpremiumpai_jpl794s3qm"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""lastpremiumdate_ilgu2dbb9"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""premiumduedate_ml9ev1et6"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""totalreinstatab_df456ni46l"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""lastservicedeta_8ym61i9fa"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""fundvalue_syf30kdc98"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""payouttype_r9a9m9kpkm"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""couponreturna_3g6dwizilq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""dividendreturnb_he0l7czwdd"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""totalreturnsab_nxameqsdii"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""growthtotalretu_2j2vcsy6b5"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""annviversarymat_aks8axx1ti"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""t180anndate180u_sue99bd5m"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""alternateaddres_0u4pacithc"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""apileadid_4que3kp2un"",";
+            jsonString += @"""value"": """ + api_leadid + @"""},";
+
+            jsonString += @" {""code"": ""pran_3uff1fx0u"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""campaignid_fjqwfvx8a"",";
+            jsonString += @"""value"": """ + CampaignID + @"""},";
+
+            jsonString += @" {""code"": ""reliablecampaig_yfokwwq4h6"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""reliablecampaig_k1f56vsicn"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""reliablecampaig_k1f56vsicn"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""verifiedcity_giw0rsadlm"",";
+            jsonString += @"""value"": """ + VerifiedCity + @"""},";
+
+            jsonString += @" {""code"": ""pfacode_w0ffbkfhtr"",";
+            jsonString += @"""value"": """ + PFACode + @"""},";
+
+            jsonString += @" {""code"": ""meetingnotifica_7s5cel8ip"",";
+            jsonString += @"""value"": """ + MeetingNotification + @"""},";
+
+            jsonString += @" {""code"": ""notificationtim_4q35djqb6k"",";
+            jsonString += @"""value"": """ + Notificationtimestamp + @"""},";
+
+            jsonString += @" {""code"": ""leadinsertdatet_p32vwpck3b"",";
+            jsonString += @"""value"": """ + LeadInsertDatetime + @"""},";
+
+            jsonString += @" {""code"": ""firstcalldateti_lsb5wch5mj"",";
+            jsonString += @"""value"": """ + FirstCallDateTime + @"""},";
+
+            jsonString += @" {""code"": ""contactablestat_8z86q4si6m"",";
+            jsonString += @"""value"": """ + ContactableStatus + @"""},";
+
+            jsonString += @" {""code"": ""maindisposition_ks5xn294vt"",";
+            jsonString += @"""value"": """ + MainDisposition + @"""},";
+
+            jsonString += @" {""code"": ""subdisposition_817r9kdqkw"",";
+            jsonString += @"""value"": """ + SubDisposition + @"""},";
+
+            jsonString += @" {""code"": ""lastcalldatetim_mr6c2q5jfm"",";
+            jsonString += @"""value"": """ + LastCallDateTime + @"""},";
+
+            jsonString += @" {""code"": ""lastestcallersr_5n73ctuirr"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""offerratingprio_dlq0x4d3s"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""productcategory_vhy4c7py1p"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""ppt_keztu2c38o"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""leadsource1cd_f3jaeg45ou"",";
+            jsonString += @"""value"": """ + CampaignSource1 + @"""},";
+
+            jsonString += @" {""code"": ""leadsubsource1c_ax1z2pxld5"",";
+            jsonString += @"""value"": """ + CampaignSource2 + @"""},";
+
+            jsonString += @" {""code"": ""leadsource2cd_xwei6bccp"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""leadsource3cd_fw9swk4hle"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""curntaddress2_j2j0s1uf13"",";
+            jsonString += @"""value"": """ + CustomerAddress1 + @"""},";
+
+            jsonString += @" {""code"": ""curntaddress3_ba5qih0ls"",";
+            jsonString += @"""value"": """ + CustomerAddress2 + @"""},";
+
+            jsonString += @" {""code"": ""curntdistrictla_ng5qlhm36l"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""curntzipcode_4pnmr16ad"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""landlineno_zx0ytnk2zp"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""email_id"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""incomegroupcd_bft1srwr17"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""maritalstatuscd_foui79kp7w"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""noofchildrencd_346m2hk3fl"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""subcategory_r1o3p9tmpx"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""alternatemobile_vvfdfm6km"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""city_wmmf8k3637d"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""subcampaignname_hnirye2ydq"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""analyticrecopro_dg0e9wrl1s"",";
+            jsonString += @"""value"": ""NA""},"; ;
+
+            jsonString += @" {""code"": ""triggereventid_z36r25da1o"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""audtime_yllzctkywm"",";
+            jsonString += @"""value"": ""NA""},"; ;
+
+            jsonString += @" {""code"": ""audtype_gtjdxnbhns"",";
+            jsonString += @"""value"": ""NA""},"; ;
+
+            jsonString += @" {""code"": ""issynced_jl3bnavppc"",";
+            jsonString += @"""value"": ""NA""},"; ;
+
+            jsonString += @" {""code"": ""assignedto_jx5x3f3asv"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""analyticrecopro_arpm7deb1n"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""adsremarks_lpadox4ogf"",";
+            jsonString += @"""value"": """ + LastestCallersremarks + @"""},";
+
+
+            jsonString += @" {""code"": ""currentage_74lmqqhs"",";
+            jsonString += @"""value"": ""NA""},";
+
+
+            jsonString += @" {""code"": ""analyticrecopro_dl0h45kohs"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""callcenterid_2d908l0vm8"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""anp_3efod0r5ry"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""appointmentdate_8vxngxs59"",";
+            jsonString += @"""value"": """ + Appointment_Date_Time + @"""},";
+
+            jsonString += @" {""code"": ""propsedservicet_uvl20m3ti9"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""gendercd_4vy8l6ex2"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""premium"",";
+            jsonString += @"""value"": ""NA""},";
+
+            jsonString += @" {""code"": ""utm_adgroup"",";
+            jsonString += @"""value"": ""NA""}]";
+
+            
+            jsonString += @"}";
+            System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+            //string svcCredentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(Password));
+            //  req.AddHeader("authorization", "{\"companyId\":9999999,\"psk\":\"o2ujoifjau3ijawfoij3lkas3l2\"}");
+            //                req.AddHeader("accept", "application/Json; charset=utf-8c");
+            //string svcCredentials = Password;
+            //req.Headers.Add("Authorization", "Basic " + svcCredentials);
+
+            req.Headers.Add("Client", "");
+            req.Headers.Add("Auth-key", "ASKMLIVEZFJFhjIIGHAD11DDtdkl2");
+            req.ContentType = "application/json; charset=utf-8";
+            req.Method = "POST";
+            byte[] bytes = System.Text.Encoding.ASCII.GetBytes(jsonString);
+            req.ContentLength = bytes.Length;
+            System.IO.Stream os = req.GetRequestStream();
+            os.Write(bytes, 0, bytes.Length);
+            os.Close();
+            System.Net.WebResponse resp = req.GetResponse();
+            System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+            stringResult = sr.ReadToEnd().Trim();
+
+
+        #endregion
+
+            #region *********SAVE RESPONSE
+
+
+            SqlCommand cmd = new SqlCommand();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "SMS_INSERT";
+            cmd.Parameters.AddWithValue("@api_leadid", api_leadid);
+            cmd.Parameters.AddWithValue("@lead_id", Client_ID);
+            cmd.Parameters.AddWithValue("@RESPONSE", stringResult);
+            cmd.Parameters.AddWithValue("@SMSTempalte", api_leadid);
+            cmd.Parameters.AddWithValue("@NC_ATTEMPT", sms_NC_count);
+            cmd.Connection = conObj.getConn();
+            cmd.Connection.Close();
+            cmd.Connection.Open();
+            cmd.ExecuteNonQuery();
+            cmd.Connection.Close();
+            // Response.Write(stringResult);
+            sr.Close();
+
+            #endregion
+
+
+        }
+        catch
+        {
+
+        }
+
+    }
+
+    //public static string GetJSONFromUserDateTime(DateTime givenDateTime)
+    //{
+    //    string jsonDateTime = string.Empty;
+    //    if (givenDateTime != null)
+    //    {
+    //        JsonSerializerSettings microsoftDateFormatSettings = new JsonSerializerSettings
+    //        {
+    //            DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
+    //        };
+    //        jsonDateTime = JsonConvert.SerializeObject(givenDateTime, microsoftDateFormatSettings);
+    //        //   jsonDateTime = jsonDateTime.Replace("\"\\/Date(", "").Replace(")\\/\"", "");
+    //    }
+    //    return jsonDateTime;
+    //}
+
+
+
+
+
+}
