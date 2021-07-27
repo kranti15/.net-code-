@@ -1,0 +1,28 @@
+using Ionic.Zip;
+
+protected void DownloadFiles(object sender, EventArgs e)
+{
+    using (ZipFile zip = new ZipFile())
+    {
+        zip.AlternateEncodingUsage = ZipOption.AsNecessary;
+        zip.AddDirectoryByName("Files");
+        foreach (GridViewRow row in GridView1.Rows)
+        {
+            if ((row.FindControl("chkSelect") as CheckBox).Checked)
+            {
+                string filePath = (row.FindControl("lblFilePath") as Label).Text;
+                zip.AddFile(filePath, "Files");
+            }
+        }
+        Response.Clear();
+        Response.BufferOutput = false;
+        string zipName = String.Format("Zip_{0}.zip", DateTime.Now.ToString("yyyy-MMM-dd-HHmmss"));
+        Response.ContentType = "application/zip";
+        Response.AddHeader("content-disposition", "attachment; filename=" + zipName); 
+        zip.Save(Response.OutputStream);
+        Response.End();
+    }
+}
+
+
+https://www.aspsnippets.com/Articles/Zip-a-Folder-Directory-and-Download-in-ASPNet-using-C-and-VBNet.aspx
