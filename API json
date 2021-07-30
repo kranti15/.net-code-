@@ -1,0 +1,222 @@
+using System;
+using System.Data;
+using System.Configuration;
+using System.Collections;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Web.UI.HtmlControls;
+using System.Data.SqlClient;
+using System.IO;
+//using System.Net;
+using System.Text;
+using System.Xml;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
+using Newtonsoft.Json.Serialization;
+using System.Web.Script.Serialization;
+
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+using System.Net;
+using System.Security.Authentication;
+using ServiceReference1;
+using ServiceReference2;
+using System.ServiceModel;
+
+public partial class OA_SFV_API : System.Web.UI.Page
+{
+    Contact obj;
+    Appointment obj_appointment;
+    Opportunity obj_opportunity;
+
+    String Client_ID;
+    String Serial_ID;
+    String Contact_Id;
+    String Appointment_Id;
+    String Opportunity_Id;
+    //String policynumber;
+    Connection conObj = new Connection();
+    string BU, Agentname ,SFAID ,CustomerName,PrimaryContact,Mobile2,Mobile3,Address,City,EmailID,BatchID,PlanName,Language;
+
+
+    //  DataTable data = new DataTable();
+
+    public string replaceSpecial(String str)
+    {
+        str = str.Replace(".", "");
+        return str;
+    }
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+        BU = Request.QueryString[0];
+        Agentname= Request.QueryString[1];
+        SFAID= Request.QueryString[2];
+        CustomerName= Request.QueryString[3];
+        PrimaryContact= Request.QueryString[4];
+        Mobile2= Request.QueryString[5];
+        Mobile3= Request.QueryString[6];
+        Address= Request.QueryString[7];
+        City= Request.QueryString[8];
+        EmailID= Request.QueryString[9];
+        BatchID= Request.QueryString[10];
+        PlanName= Request.QueryString[11];
+        Language = Request.QueryString[12];
+
+       
+       
+
+
+      
+        //bdm
+
+     
+        {
+           // SMScontain = "Dear " + CURR_BM_NAME + ", We are unable to connect with Policy No: " + policynumber + " for welcome call even after 4th attempt. Request customer to receive the call from 2243662302 to complete the call.";
+            //SMScontain = "Dear " + FIRST_NAME + ", At IndiaFirst Life, we place our customers FIRST. We do not want you to miss out on important communication around your policy. Therefore, we advise you to add your contact detail against your Policy Number  " + policynumber + ". Hurry Up & update now by clicking here https://www.indiafirstlife.com/iflapp/web/bop/customer-contact so that you stay updated!.";
+
+            //SMScontain = "Dear Merchant, Thank you for your interest in Paytm Card Machine. Please click on the link https://paytm.me/VHIy-OP to find the best device for your business.";
+
+
+            //Mobilenum = MobileNo;
+            //SEND_SMS();
+
+            PushData();
+
+        }
+
+    }
+
+
+    public void PushData()
+    {
+
+      
+
+
+       
+        #region ********* API CALL
+
+        try
+        {
+            if (BU != "" || SFAID != "" || CustomerName != "" || PrimaryContact != "" || Language!="")
+
+            {
+
+
+                const SslProtocols _Tls12 = (SslProtocols)0x00000C00;
+                const SecurityProtocolType Tls12 = (SecurityProtocolType)_Tls12;
+                ServicePointManager.SecurityProtocol = Tls12;
+
+                string url = "http://10.10.98.10/OneassistAPI/Dialer/PushRbsLead";
+                    //&message_replace=optional";
+
+
+                string stringResult = "";
+                
+                         // string username = "paymernetm";
+                        // string Password = "SzN3aH/UZ";
+                
+                DateTime CallBackTime = System.DateTime.Now.ToUniversalTime();
+                string Comment = "TEST LEAD FROM RELIABLE IT";
+                String jsonString = @"[{";
+                //jsonString += @"    ""ESBSMSReq"": { ";
+                jsonString += @"    ""BU"": """ + BU + @""",";
+                jsonString += @"    ""Agentname"": """ + Agentname + @""",";
+                jsonString += @"    ""SFAID"": """ + SFAID + @""",";
+                jsonString += @"    ""CustomerName"": """ + CustomerName + @""",";
+                jsonString += @"    ""PrimaryContact"": """ + PrimaryContact + @""",";
+                jsonString += @"    ""Mobile2"": """ + Mobile2 + @""",";
+                jsonString += @"    ""Mobile3"": """ + Mobile3 + @""",";
+                jsonString += @"    ""Address"": """ + Address + @""",";
+                jsonString += @"    ""City"": """ + City + @""",";
+                jsonString += @"    ""EmailID"": """ + EmailID + @""",";
+                jsonString += @"    ""BatchID"": """ + BatchID + @""",";
+                jsonString += @"    ""PlanName"":""" + PlanName + @""",";
+                jsonString += @"    ""Language"": "" " + Language + @"  """;
+                
+                //jsonString += @"    ""Username"": """ + username + @""",";
+                //jsonString += @"    ""Password"": """ + Password + @"""";
+                // //  jsonString += @"    ""FollowUpTime"": null ,";
+                //    jsonString += @"    ""FollowUpTime"": "+ jsonDateTime+",";
+                //   jsonString += @"   ""CallBackTime"":   " + jsonDateTime + ",";
+                ////  jsonString += @"    ""CallBackTime"": null,";
+                //   jsonString += @"    ""Comment"": """ + Comment + @"""";
+                jsonString += @"}]";
+                System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+                //string svcCredentials = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + Password));
+                //req.Headers.Add("Authorization", "Basic " + svcCredentials);
+
+                req.ContentType = "application/json";
+                req.Method = "POST";
+                byte[] bytes = System.Text.Encoding.ASCII.GetBytes(jsonString);
+                req.ContentLength = bytes.Length;
+                System.IO.Stream os = req.GetRequestStream();
+                os.Write(bytes, 0, bytes.Length);
+                os.Close();
+                System.Net.WebResponse resp = req.GetResponse();
+                System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+                stringResult = sr.ReadToEnd().Trim();
+                msg.Text = stringResult;
+
+
+        #endregion
+
+                #region *********SAVE RESPONSE
+
+
+                //SqlCommand cmd = new SqlCommand();
+                //cmd.CommandType = CommandType.StoredProcedure;
+                ////cmd.CommandText = "SMS_INSERT_ContactUpdate";
+                ////cmd.Parameters.AddWithValue("@MOBILE_NO", Mobilenum);
+                ////cmd.Parameters.AddWithValue("@LEAD_ID", Client_ID);
+                ////cmd.Parameters.AddWithValue("@RESPONSE", stringResult);
+                ////cmd.Parameters.AddWithValue("@SMSTempalte", SMScontain);
+                ////cmd.Parameters.AddWithValue("@PolicyNumber", policynumber);
+                ////cmd.Parameters.AddWithValue("@NC_ATTEMPT", 0);
+                //cmd.Connection = conObj.getConn();
+                //cmd.Connection.Close();
+                //cmd.Connection.Open();
+                //cmd.ExecuteNonQuery();
+                //cmd.Connection.Close();
+                //// Response.Write(stringResult);
+                //sr.Close();
+
+                #endregion
+
+            }
+        }
+        catch(Exception ex)
+        {
+            throw ( ex);
+        }
+    }
+
+
+    public static string GetJSONFromUserDateTime(DateTime givenDateTime)
+    {
+        string jsonDateTime = string.Empty;
+        if (givenDateTime != null)
+        {
+            JsonSerializerSettings microsoftDateFormatSettings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.MicrosoftDateFormat
+            };
+            jsonDateTime = JsonConvert.SerializeObject(givenDateTime, microsoftDateFormatSettings);
+            //   jsonDateTime = jsonDateTime.Replace("\"\\/Date(", "").Replace(")\\/\"", "");
+        }
+        return jsonDateTime;
+    }
+
+
+   
+
+
+}
