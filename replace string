@@ -1,0 +1,5 @@
+
+REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+       REPLACE(REPLACE(REPLACE(REPLACE(@text,
+        '!',''),'@',''),'#',''),'$',''),'%',''),
+        '^',''),'&',''),'*',''),' ','')
