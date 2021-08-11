@@ -1,0 +1,17 @@
+Content page PreInit event.
+Master page controls Init event.
+Content controls Init event.
+Master page Init event.
+Content page Init event.
+Content page Load event.
+Master page Load event.
+Master page controls Load event.
+Content page controls Load event.
+Content page PreRender event.
+Master page PreRender event.
+Master page controls PreRender event.
+Content page controls PreRender event.
+Master page controls Unload event.
+Content page controls Unload event.
+Master page Unload event.
+Content page Unload event.
