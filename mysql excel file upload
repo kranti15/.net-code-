@@ -1,0 +1,65 @@
+try
+          {
+              string CurrentFilePath = Path.GetFullPath(FileUploadProduct.PostedFile.FileName);
+              string file = FileUploadProduct.PostedFile.FileName;
+              file = Path.GetFileName(file);
+              //string filepath = Server.MapPath("~/Files/") + file;
+              string filepath = Server.MapPath("~/Manual_Call/") + file;
+              FileUploadProduct.SaveAs(filepath);
+              StreamReader sr = new StreamReader(filepath);
+              string line = sr.ReadLine();
+              string[] value = line.Split(';');
+              DataTable dt = new DataTable();
+              DataRow row;
+              foreach (string dc in value)
+              {
+                  dt.Columns.Add(new DataColumn(dc));
+              }
+              while (!sr.EndOfStream)
+              {
+                  value = sr.ReadLine().Split(';');
+                  if (value.Length == dt.Columns.Count)
+                  {
+                      row = dt.NewRow();
+                      row.ItemArray = value;
+                      dt.Rows.Add(row);
+                  }
+              }
+
+              string sqlconn = ConfigurationManager.ConnectionStrings["SqlCom"].ConnectionString;
+              con = new MySqlConnection(sqlconn);
+
+              string MyCon = ConfigurationManager.ConnectionStrings["SqlCom"].ConnectionString;
+
+
+              MySqlBulkLoader loader = new MySqlBulkLoader(con);
+
+
+              loader.TableName = "Temp_ManualCallUtility";
+              loader.Timeout = 1200;
+              loader.FieldTerminator = ",";
+              loader.LineTerminator = "\n";
+              loader.FileName = filepath;
+              loader.NumberOfLinesToSkip = 1;
+              loader.Load();
+
+              cmd = new MySqlCommand("USP_Manual_call_Utility", con);
+              cmd.CommandType = CommandType.StoredProcedure;
+              MySqlDataAdapter da = new MySqlDataAdapter(cmd);
+
+              con.Open();
+              int j = cmd.ExecuteNonQuery();
+              con.Close();
+              cmd.Parameters.Clear();
+
+              //MsgAlert.Text = " Record uploaded Successfully.";
+              //MsgAlert.ForeColor = System.Drawing.Color.Green;
+
+              Response.Write("<script> alert('Data Submitted Successfully') </script>  ");
+
+          }
+          catch (Exception ex)
+          {
+              ExceptionLogging.SendExcepToDB(ex);
+              Response.Write("<script> alert('Error while Saving Data') </script>  ");
+          }
