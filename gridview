@@ -1,0 +1,50 @@
+ <asp:GridView ID="gvsimul" runat="server" CssClass="mydatagrid" PagerStyle-CssClass="pager"
+                            HeaderStyle-CssClass="header" RowStyle-CssClass="rows" AutoGenerateColumns="false"
+                            Width="900px" OnRowCommand="gvsimul_RowCommand">
+                            <Columns>
+
+                                <asp:TemplateField HeaderText="No.">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblRowNumber" Text='<%# Container.DataItemIndex + 1 %>' runat="server" />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+
+                                <asp:TemplateField HeaderText="Action">
+                                    <ItemTemplate>
+                                        <asp:Button ID="btnedit" runat="server" Text="Edit" CommandName="getSelectedData"
+                                            CommandArgument="<%# ((GridViewRow) Container).RowIndex %>" />
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+
+                                <asp:TemplateField HeaderText="Lead Code">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblLead_Code" runat="server" Text='<%#Eval("Lead_Code")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Customer name">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblCustomer_name" runat="server" Text='<%#Eval("Customer_name")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Advisor name">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblAdvisor_name" runat="server" Text='<%#Eval("Advisor_name")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="DATA Name">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblDATA_Name" runat="server" Text='<%#Eval("DATA_Name")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Mobile number">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblMobile_number" runat="server" Text='<%#Eval("Mobile_number")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                <asp:TemplateField HeaderText="Remarks">
+                                    <ItemTemplate>
+                                        <asp:Label ID="lblRemarks" runat="server" Text='<%#Eval("Remarks")%>'></asp:Label>
+                                    </ItemTemplate>
+                                </asp:TemplateField>
+                                </Columns>
+                                </asp:GridView>
