@@ -1,0 +1,77 @@
+try
+          {
+
+              string file_name = Path.GetFileName(FileUploadProduct.PostedFile.FileName);
+              if (file_name == "")
+              {
+                  MsgAlert.Text = "Please select excel file.";
+                  MsgAlert.ForeColor = System.Drawing.Color.Red;
+              }
+              else
+              {
+                  string fileExtension = Path.GetExtension(FileUploadProduct.FileName);
+                  if (fileExtension == ".xls" || fileExtension == ".xlsx")
+                  {
+                      // Excel File Upload
+                      System.IO.FileInfo file = new System.IO.FileInfo(FileUploadProduct.PostedFile.FileName);
+                      string fname = file.Name.Remove((file.Name.Length - file.Extension.Length));
+                      fname = file_name + System.DateTime.Now.ToString("_dd_MM_yyyy") + file.Extension;
+
+                      if (fname.Length > 0)
+                      {
+                          FileUploadProduct.SaveAs(Server.MapPath("~/StopFollow/" + "\\" + fname));
+
+                          System.Data.OleDb.OleDbConnection MyConnection;
+                          System.Data.DataSet DtSet;
+                          System.Data.OleDb.OleDbDataAdapter MyCommand;
+                          string myfile_name = fname.ToString();
+                          string Excel_path = Server.MapPath("~/StopFollow/" + "\\" + myfile_name);
+                          MyConnection = new OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Excel_path + ";Extended Properties=Excel 12.0;Persist Security Info=False");
+                          // MyConnection = new System.Data.OleDb.OleDbConnection("provider=Microsoft.Jet.OLEDB.4.0;Data Source='c:\\csharp.net-informations.xls';Extended Properties=Excel 8.0;");
+                          MyCommand = new System.Data.OleDb.OleDbDataAdapter("select * from [Sheet1$]", MyConnection);
+                          // MyCommand = new System.Data.OleDb.OleDbDataAdapter("select * from [" + txtsheet.Text + "$]", MyConnection);
+
+                          MyCommand.TableMappings.Add("Table", "TestTable");
+                          DtSet = new System.Data.DataSet();
+                          MyCommand.Fill(DtSet);
+
+                          int rowcount = DtSet.Tables[0].Rows.Count;
+
+                          using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["Conrobocash"].ConnectionString))
+                          {
+                              SqlCommand cmd = new SqlCommand();
+
+                              cmd = new SqlCommand("USP_Stop_FollowUP_Case", connection);
+                              cmd.CommandType = CommandType.StoredProcedure;
+
+                              for (int i = 0; i < rowcount; i++)
+                              {
+                                  //cmd.CommandType = CommandType.StoredProcedure;
+                                  string app = Convert.ToString(DtSet.Tables[0].Rows[i]["Lead_Id"]);
+                                  cmd.Parameters.AddWithValue("@Lead_Id", Convert.ToString(DtSet.Tables[0].Rows[i]["Lead_Id"]));
+
+                                  // cmd.Parameters.AddWithValue("@Application_No", Convert.ToString(DtSet.Tables[0].Rows[i]["Application_Number"]));
+
+
+                                  connection.Open();
+                                  int j = cmd.ExecuteNonQuery();
+                                  connection.Close();
+                                  cmd.Parameters.Clear();
+
+                              }
+
+                          }
+                          Response.Write("<script>alert('Data Submitted')</script>");
+
+                      }
+                  }
+
+
+
+              }
+          }
+          catch (Exception ex)
+          {
+              ExceptionLogging.SendExcepToDB(ex);
+              Response.Write("<script> alert('Error while Saving Data') </script>  ");
+          }
