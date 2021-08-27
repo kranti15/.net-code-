@@ -1,0 +1,33 @@
+https://forums.asp.net/t/1269499.aspx?Character+Counter+for+Multiline+Textbox
+
+
+
+<script language = "Javascript">
+function tbLimit() {
+
+var tbObj=event.srcElement;
+if (tbObj.value.length==tbObj.maxLength*1) return false;
+
+}
+
+function tbCount(visCnt) {
+var tbObj=event.srcElement;
+
+if (tbObj.value.length>tbObj.maxLength*1) tbObj.value=tbObj.value.substring(0,tbObj.maxLength*1);
+if (visCnt) visCnt.innerText=tbObj.maxLength-tbObj.value.length;
+
+}
+
+--------------------------------------------------------------------------------------------
+<asp:TextBox ID="TextBox1" runat="server"
+Columns="30" Rows="10"
+
+TextMode="MultiLine" ></asp:TextBox>
+
+--------------------------------------------------------------------------------------------
+protected void Page_Load(object sender, EventArgs e)
+    {
+        TextBox1.Attributes.Add("onkeypress", "return tbLimit();");
+        TextBox1.Attributes.Add("onkeyup", "return tbCount(" + Label1.ClientID + ");");
+        TextBox1.Attributes.Add("maxLength", "500");
+    }
