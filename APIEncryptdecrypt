@@ -1,0 +1,245 @@
+using WebApplication1.Models;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
+
+namespace WebApplication1.Controllers
+{
+    public class MAMController : ApiController
+    {
+		public static string EncryptString(string key, string plainText)
+		{
+			//byte[] iv = new byte[16];
+			string iv = "tataaialifeapiky";
+			byte[] array;
+			
+
+			using (Aes aes = Aes.Create())
+			{
+				aes.Key = Encoding.UTF8.GetBytes(key);
+				aes.IV = Encoding.UTF8.GetBytes(iv);
+
+				ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+				using (MemoryStream memoryStream = new MemoryStream())
+				{
+					using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+					{
+						using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
+						{
+							streamWriter.Write(plainText);
+						}
+						array = memoryStream.ToArray();
+					}
+				}
+			}
+			return Convert.ToBase64String(array);
+		}
+
+		public static string DecryptString(string key, string cipherText)
+		{
+
+			//byte[] iv = new byte[16];
+			string iv = "tataaialifeapiky";
+			byte[] buffer = Convert.FromBase64String(cipherText);
+
+
+			using (Aes aes = Aes.Create())
+			{
+				aes.Key = Encoding.UTF8.GetBytes(key);
+				//aes.KeySize = 128;
+				aes.IV = Encoding.UTF8.GetBytes(iv);  //iv;				
+				//aes.Mode = CipherMode.ECB;				
+				//aes.Padding = PaddingMode.PKCS7;
+				ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+				
+
+				using (MemoryStream memoryStream = new MemoryStream(buffer))
+				{
+					using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
+					{
+						using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
+						{
+							
+							return streamReader.ReadToEnd();
+						}
+					}
+				}
+			}
+		}
+
+		
+
+		// POST: MAM/Create
+		[HttpPost]
+        public HttpResponseMessage POSTDATA([FromBody]List<mrcc2c> CustomerObj)
+        {
+
+			
+
+			try
+            {
+				string key = "s14ac5898a4e413a";
+
+				response objResponse = new response();
+                DataTable Customer = new DataTable();
+
+
+				Customer.Columns.Add("name", typeof(string));
+				Customer.Columns.Add("city", typeof(string));
+				Customer.Columns.Add("emailid", typeof(string));
+				Customer.Columns.Add("mobileno", typeof(string));
+				Customer.Columns.Add("campaignid", typeof(string));
+				Customer.Columns.Add("leadid", typeof(string));
+				Customer.Columns.Add("remark", typeof(string));
+				Customer.Columns.Add("filler1", typeof(string));
+
+				for (int j = 0; j < CustomerObj.Count; j++)
+                {
+					//Customer.Rows.Add(CustomerObj[j].mobile, CustomerObj[j].MISSCALL_DNI, CustomerObj[j].leadsource, CustomerObj[j].PASSKEY);
+					Customer.Rows.Add(CustomerObj[j].name, CustomerObj[j].city, CustomerObj[j].emailid, CustomerObj[j].mobileno, CustomerObj[j].campaignid, CustomerObj[j].leadid, CustomerObj[j].remark, CustomerObj[j].filler1);
+				}
+
+                using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["CONS"].ConnectionString))
+                {
+					//   connection.Open();
+
+					//string strMobile = "", strDNI = "", strsource = "", STRKEY = "";
+					string StrName = "", strCity = "", strEmailid = "", strMobno = "", strCampaignid = "", strLeadid = "", strRemark = "", strFiller1 = "";
+
+
+
+					for (int i = 0; i < CustomerObj.Count; i++) // dt table
+                    {
+                       
+
+						StrName = CustomerObj[i].name;
+						strCity =  CustomerObj[i].city;
+						strEmailid =  CustomerObj[i].emailid;
+						strMobno =  CustomerObj[i].mobileno;
+						strCampaignid =  CustomerObj[i].campaignid;
+						strLeadid =  CustomerObj[i].leadid;
+						strRemark =  CustomerObj[i].remark;
+						strFiller1 =  CustomerObj[i].filler1;
+
+                        StrName = DecryptString(key, StrName);
+                        strCity = DecryptString(key, strCity);
+                        strEmailid = DecryptString(key, strEmailid);
+                        strMobno = DecryptString(key, strMobno);
+                        strCampaignid = DecryptString(key, strCampaignid);
+                        strLeadid = DecryptString(key, strLeadid);
+                        strRemark = DecryptString(key, strRemark);
+                        strFiller1 = DecryptString(key, strFiller1);
+
+                        //StrName = Decryptword(StrName);
+                        //strCity = Decryptword(strCity);
+                        //strEmailid = Decryptword(strEmailid);
+                        //strMobno = Decryptword(strMobno);
+                        //strCampaignid = Decryptword(strCampaignid);
+                        //strLeadid = Decryptword(strLeadid);
+                        //strRemark = Decryptword(strRemark);
+                        //strFiller1 = Decryptword(strFiller1);
+
+
+
+
+
+
+                        SqlCommand cmd = new SqlCommand();
+						cmd = new SqlCommand("USP_API_INSERT_DATA_MARKETING_EnDeUAT", connection);
+						cmd.CommandType = CommandType.StoredProcedure;
+						cmd.Parameters.AddWithValue("@name", StrName);
+						cmd.Parameters.AddWithValue("@city", strCity);
+						cmd.Parameters.AddWithValue("@emailid", strEmailid);
+						cmd.Parameters.AddWithValue("@mobno", strMobno);
+						cmd.Parameters.AddWithValue("@campaignid", strCampaignid);
+						cmd.Parameters.AddWithValue("@leadid", strLeadid);
+						cmd.Parameters.AddWithValue("@remark", strRemark);
+						cmd.Parameters.AddWithValue("@filler1", strFiller1);
+
+
+
+
+
+						connection.Open();
+						int ss = cmd.ExecuteNonQuery();
+						connection.Close();
+
+						strLeadid = EncryptString(key, strLeadid);
+						//strCity = Decryptword(strCity);
+						//strEmailid = Decryptword(strEmailid);
+						//strMobno = Decryptword(strMobno);
+						//strCampaignid = Decryptword(strCampaignid);
+						//strLeadid = Decryptword(strLeadid);
+						//strRemark = Decryptword(strRemark);
+						//strFiller1 = Decryptword(strFiller1);
+
+
+						if (ss > 0)
+						{
+
+
+							
+							objResponse.MESSAGE_CODE = "001-" + strLeadid;
+							
+						}
+						else
+						{
+
+							objResponse.MESSAGE_CODE = "002-FAILED";
+//							objResponse.MESSAGE_DESCRIPTION = "FAILED";
+
+
+							return Request.CreateResponse(HttpStatusCode.InternalServerError, objResponse, "application/json");
+						}
+					}
+
+				}
+
+
+				return Request.CreateResponse(HttpStatusCode.OK, objResponse, "application/json");
+			}
+
+
+			catch (Exception ex)
+			{
+
+				//using (SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["CONS"].ConnectionString))
+
+				//{
+				//     response objResponse1 = new response();
+				//    for (int i = 0; i < CustomerObj.Count; i++)
+				//    {
+				//        SqlCommand cmd = new SqlCommand("INSERT INTO mrcc2c (mobile, MISSCALL_DNI,leadsource,PASSKEY) VALUES (@mobile, @MISSCALL_DNI,@leadsource,@PASSKEY)", connection);
+				//        cmd.Parameters.AddWithValue("@mobile", CustomerObj[i].mobile);
+				//        cmd.Parameters.AddWithValue("@MISSCALL_DNI", CustomerObj[i].MISSCALL_DNI);
+				//        cmd.Parameters.AddWithValue("@leadsource", CustomerObj[i].leadsource);
+				//        cmd.Parameters.AddWithValue("@PASSKEY", CustomerObj[i].PASSKEY);
+
+
+				//        connection.Open();
+				//        cmd.ExecuteNonQuery();
+				//        connection.Close();
+				response objResponse = new response();
+				//objResponse.MESSAGE_CODE = "002-FAILED";
+				objResponse.MESSAGE_CODE = "string should be encrypted format";
+			//	objResponse.MESSAGE_DESCRIPTION = "FAILED";
+
+
+				return Request.CreateResponse(HttpStatusCode.InternalServerError, objResponse, "application/json");
+			}
+
+		}
+	}
+}
+
